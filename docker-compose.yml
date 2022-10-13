@@ -3,5 +3,7 @@ version: "3.9"
 services:
   go:
     build:
-      context: ./src
+      context: .
       dockerfile: ./Dockerfile
+    env_file:
+      - ./src/.env
