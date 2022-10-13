@@ -17,11 +17,18 @@ const HelpMessage = "Привет! Я понимаю такие команды\n
 
 func main() {
 	err := godotenv.Load()
+
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
 	ChannelId, err := strconv.ParseInt(os.Getenv("CHANNEL_ID"), 10, 64)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	AdminId, err := strconv.ParseInt(os.Getenv("ADMIN_ID"), 10, 64)
 
 	if err != nil {
 		log.Panic(err)
@@ -45,22 +52,27 @@ func main() {
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message == nil { // ignore any non-Message updates
+		if update.Message == nil || update.Message.Chat.ID != AdminId {
 			continue
 		}
 
-		if !update.Message.IsCommand() { // ignore any non-command Messages
+		if !update.Message.IsCommand() {
 			continue
 		}
 
-		// Create a new MessageConfig. We don't have text yet,
-		// so we leave it empty.
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
-		// Extract the command from the Message.
 		switch update.Message.Command() {
 		case "help":
 			msg.Text = HelpMessage
+		case "health":
+			botUser, err := bot.GetMe()
+
+			if err != nil {
+				log.Panic(err)
+			}
+
+			msg.Text = botUser.String()
 		case "parse_rss":
 			sendDailyJocks(ChannelId, bot)
 			continue
@@ -75,7 +87,7 @@ func main() {
 }
 func initCron(ChannelId int64, bot *tgbotapi.BotAPI) {
 	s := gocron.NewScheduler(time.UTC)
-	s.Every(1).Day().At("12:28").Do(func() {
+	s.Every(1).Day().At("10:28").Do(func() {
 		sendDailyJocks(ChannelId, bot)
 	})
 	s.StartAsync()
@@ -86,10 +98,12 @@ func sendDailyJocks(ChannelId int64, bot *tgbotapi.BotAPI) {
 	msg := tgbotapi.NewMessage(-ChannelId, "")
 	msg.Text = "-- Прислано ботом --"
 	bot.Send(msg)
+
 	for _, jok := range getJokes() {
 		msg.Text = jok
 		bot.Send(msg)
 	}
+
 	msg.Text = "-- **** --"
 	bot.Send(msg)
 }
@@ -100,8 +114,10 @@ func getJokes() []string {
 
 func parseRss() []string {
 	var jocks []string
+
 	fp := gofeed.NewParser()
 	feed, _ := fp.ParseURL("https://www.anekdot.ru/rss/export_j.xml")
+
 	for _, item := range feed.Items {
 		jocks = append(jocks, getTextFromHtml(item.GUID))
 	}
