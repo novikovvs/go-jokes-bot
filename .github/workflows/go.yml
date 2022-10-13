@@ -22,4 +22,4 @@ jobs:
       working-directory: ./src
       run: |
           go install
-          go build -v ./src/main.go
+          go build -v ./main.go
