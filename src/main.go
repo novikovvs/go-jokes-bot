@@ -104,14 +104,18 @@ func initCron(ChannelId int64, bot *tgbotapi.BotAPI, AuthKey *string) {
 	s.Every(1).Day().At("10:28").Do(func() {
 		sendDailyJocks(ChannelId, bot)
 	})
-	s.Every(5).Minutes().Do(func() {
-		var err error
-		AuthKey, err = backend.GetKey(backend.Client(*AuthKey))
-		if err != nil {
-			log.Println(err)
-		}
-		log.Println("Update key:", *AuthKey)
-	})
+
+	if os.Getenv("DEBUG") != "" {
+		s.Every(5).Minutes().Do(func() {
+			var err error
+			AuthKey, err = backend.GetKey(backend.Client(*AuthKey))
+			if err != nil {
+				log.Println(err)
+			}
+			log.Println("Update key:", *AuthKey)
+		})
+	}
+
 	s.StartAsync()
 }
 
