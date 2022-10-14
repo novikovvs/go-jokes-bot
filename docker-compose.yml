@@ -5,5 +5,5 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    env_file:
-      - ./src/.env
+    volumes:
+      - ./src/.env.example:/app/.env
