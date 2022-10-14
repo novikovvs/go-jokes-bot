@@ -105,7 +105,7 @@ func initCron(ChannelId int64, bot *tgbotapi.BotAPI, AuthKey *string) {
 		sendDailyJocks(ChannelId, bot)
 	})
 
-	if os.Getenv("DEBUG") != "" {
+	if false {
 		s.Every(5).Minutes().Do(func() {
 			var err error
 			AuthKey, err = backend.GetKey(backend.Client(*AuthKey))
