@@ -87,7 +87,7 @@ func main() {
 }
 func initCron(ChannelId int64, bot *tgbotapi.BotAPI) {
 	s := gocron.NewScheduler(time.UTC)
-	s.Every(1).Day().At("10:28").Do(func() {
+	s.Every(1).Day().At("09:28").Do(func() {
 		sendDailyJocks(ChannelId, bot)
 	})
 	s.StartAsync()
